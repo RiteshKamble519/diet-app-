@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NutriCraft AI - Personalized Diet Planner</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              200: '#a7f3d0',
+              300: '#6ee7b7',
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b',
+              950: '#022c22',
+            }
+          },
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; transition: background-color 0.3s ease, color 0.3s ease; }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .dark ::-webkit-scrollbar-thumb { background: #334155; }
+    ::-webkit-scrollbar-thumb:hover { background: #059669; }
+
+    /* Light Glassmorphism Card */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.04);
+    }
+    .dark .glass-card {
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Input Styling */
+    .glass-input {
+      background: rgba(241, 245, 249, 0.8);
+      border: 1px solid rgba(203, 213, 225, 0.8);
+      color: #0f172a;
+    }
+    .dark .glass-input {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #f8fafc;
+    }
+    .glass-input:focus {
+      border-color: #059669;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+    }
+
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white !important; color: black !important; }
+      .print-card { border: 1px solid #ccc !important; background: white !important; color: black !important; }
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col antialiased bg-gradient-to-br from-slate-50 via-emerald-50/20 to-teal-50/30 text-slate-800 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100 selection:bg-brand-500 selection:text-white">
+
+  <!-- TOP HEADER / NAVBAR -->
+  <header class="sticky top-0 z-40 border-b border-slate-200/80 dark:border-slate-800 bg-white/80 dark:bg-slate-900/90 backdrop-blur-md px-4 lg:px-8 py-3.5 no-print transition-colors">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      
+      <!-- Logo & Title -->
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-600 via-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-brand-500/20">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 3v18m9-9H3m12-6l3 3-3 3M9 6L6 9l3 3" />
+          </svg>
+        </div>
+        <div>
+          <span class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5">
+            Nutri<span class="text-brand-600 dark:text-brand-400">Craft</span>
+            <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-700 dark:text-brand-400 border border-brand-500/20">AI Engine</span>
+          </span>
+          <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Clinical Precision Diet & Nutrition Planner</p>
+        </div>
+      </div>
+
+      <!-- Quick Actions & Theme Toggle -->
+      <div class="flex items-center space-x-2 sm:space-x-3">
+        
+        <!-- Preset Selector (Desktop) -->
+        <div class="hidden lg:flex items-center bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200 dark:border-slate-700/60 text-xs">
+          <span class="text-slate-500 dark:text-slate-400 px-2 font-medium">Presets:</span>
+          <button onclick="loadPreset('diabetic_veg')" class="px-2.5 py-1 rounded-lg hover:bg-white dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition font-medium">Diabetic Veg</button>
+          <button onclick="loadPreset('flexitarian')" class="px-2.5 py-1 rounded-lg hover:bg-white dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition font-medium">Flexitarian</button>
+          <button onclick="loadPreset('pcos_vegan')" class="px-2.5 py-1 rounded-lg hover:bg-white dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition font-medium">PCOS Vegan</button>
+        </div>
+
+        <!-- UI Mockups Tab Button -->
+        <button onclick="switchTab('screen_mockups')" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 text-xs font-bold transition">
+          <span>🎨 UI Mockups</span>
+        </button>
+
+        <!-- THEME TOGGLE BUTTON -->
+        <button id="theme-toggle-btn" onclick="toggleTheme()" class="flex items-center space-x-2 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-semibold transition">
+          <span id="theme-icon">☀️</span>
+          <span id="theme-text" class="hidden sm:inline">Light</span>
+        </button>
+
+        <!-- New Plan CTA -->
+        <a href="#planner" onclick="switchTab('planner_step1')" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600 text-white dark:text-slate-950 font-bold text-xs shadow-md shadow-brand-500/20 transition">
+          + New Plan
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col">
+
+    <!-- STEP NAVIGATION WIZARD TABS -->
+    <nav class="mb-6 no-print">
+      <div class="flex items-center justify-between bg-white/70 dark:bg-slate-800/60 p-1.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-x-auto scrollbar-none shadow-sm">
+        <button id="nav-btn-step1" onclick="switchTab('planner_step1')" class="flex-1 min-w-[140px] px-3 py-2.5 rounded-xl font-bold text-xs transition flex items-center justify-center space-x-2 bg-brand-600 dark:bg-brand-500 text-white dark:text-slate-950 shadow">
+          <span class="w-5 h-5 rounded-full bg-white/20 dark:bg-slate-950/20 flex items-center justify-center text-[10px] font-extrabold">1</span>
+          <span>Biometrics & Health</span>
+        </button>
+        <button id="nav-btn-step2" onclick="switchTab('planner_step2')" class="flex-1 min-w-[140px] px-3 py-2.5 rounded-xl font-semibold text-xs transition flex items-center justify-center space-x-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+          <span class="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-[10px] font-bold">2</span>
+          <span>Diets & Exclusions</span>
+        </button>
+        <button id="nav-btn-step3" onclick="switchTab('planner_step3')" class="flex-1 min-w-[140px] px-3 py-2.5 rounded-xl font-semibold text-xs transition flex items-center justify-center space-x-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+          <span class="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-[10px] font-bold">3</span>
+          <span>Cuisines & Schedule</span>
+        </button>
+        <button id="nav-btn-dashboard" onclick="switchTab('planner_dashboard')" class="flex-1 min-w-[140px] px-3 py-2.5 rounded-xl font-semibold text-xs transition flex items-center justify-center space-x-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+          <span class="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-[10px] font-bold">4</span>
+          <span>✨ AI Diet Plan</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- STEP 1: BIOMETRICS & HEALTH CONDITIONS -->
+    <section id="tab-step1" class="tab-content flex-1 flex flex-col">
+      <div class="glass-card rounded-3xl p-6 sm:p-8 space-y-8">
+        <div>
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-brand-500/10 text-brand-700 dark:text-brand-400 text-xs font-bold mb-2">
+            <span>STEP 1 OF 3</span>
+            <span>•</span>
+            <span>Biometrics & Health Profile</span>
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Personal Metrics & Health Conditions</h1>
+          <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Provide physical metrics and select diagnosed conditions (max 20 conditions allowed) to prevent adverse reactions.</p>
+        </div>
+
+        <!-- Biometrics Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div class="space-y-2">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Gender</label>
+            <select id="input-gender" class="w-full glass-input rounded-xl px-4 py-3 focus:outline-none text-sm font-medium">
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Non-binary">Non-binary</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Age (years)</label>
+            <input type="number" id="input-age" value="32" min="10" max="100" class="w-full glass-input rounded-xl px-4 py-3 focus:outline-none text-sm font-medium">
+          </div>
+
+          <div class="space-y-2">
+            <div class="flex justify-between items-center">
+              <label class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Height</label>
+              <select id="height-unit" onchange="toggleHeightUnit()" class="text-[11px] bg-slate-200 dark:bg-slate-800 text-brand-700 dark:text-brand-400 font-bold px-2 py-0.5 rounded border border-slate-300 dark:border-slate-700">
+                <option value="cm">cm</option>
+                <option value="ft">ft / in</option>
+              </select>
+            </div>
+            <div id="height-cm-container">
+              <input type="number" id="input-height-cm" value="175" class="w-full glass-input rounded-xl px-4 py-3 focus:outline-none text-sm font-medium">
+            </div>
+            <div id="height-ft-container" class="hidden grid grid-cols-2 gap-2">
+              <input type="number" id="input-height-ft" value="5" class="w-full glass-input rounded-xl px-3 py-3 focus:outline-none text-sm font-medium" placeholder="Ft">
+              <input type="number" id="input-height-in" value="9" class="w-full glass-input rounded-xl px-3 py-3 focus:outline-none text-sm font-medium" placeholder="In">
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <div class="flex justify-between items-center">
+              <label class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Weight</label>
+              <select id="weight-unit" class="text-[11px] bg-slate-200 dark:bg-slate-800 text-brand-700 dark:text-brand-400 font-bold px-2 py-0.5 rounded border border-slate-300 dark:border-slate-700">
+                <option value="kg">kg</option>
+                <option value="lbs">lbs</option>
+              </select>
+            </div>
+            <input type="number" id="input-weight" value="76" class="w-full glass-input rounded-xl px-4 py-3 focus:outline-none text-sm font-medium">
+          </div>
+        </div>
+
+        <hr class="border-slate-200 dark:border-slate-800">
+
+        <!-- Health Conditions Section (Max 20) -->
+        <div class="space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <span>Medical Conditions</span>
+                <span id="condition-counter" class="text-xs px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-brand-700 dark:text-brand-400 border border-slate-200 dark:border-slate-700 font-semibold">0 / 20 Selected</span>
+              </h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Choose pre-defined conditions or add custom ones.</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-1">
+              <label class="text-xs text-slate-500 dark:text-slate-400 font-medium">Select Pre-defined Condition:</label>
+              <select id="dropdown-conditions" onchange="addConditionFromDropdown()" class="w-full glass-input rounded-xl px-4 py-3 focus:outline-none text-sm font-medium">
+                <option value="">-- Choose Condition --</option>
+                <option value="Type 2 Diabetes">Type 2 Diabetes</option>
+                <option value="Hypertension (High BP)">Hypertension (High BP)</option>
+                <option value="High Cholesterol">High Cholesterol</option>
+                <option value="Celiac Disease (Gluten Intolerance)">Celiac Disease (Gluten Intolerance)</option>
+                <option value="Irritable Bowel Syndrome (IBS)">Irritable Bowel Syndrome (IBS)</option>
+                <option value="Polycystic Ovary Syndrome (PCOS)">Polycystic Ovary Syndrome (PCOS)</option>
+                <option value="Hypothyroidism">Hypothyroidism</option>
+                <option value="GERD / Acid Reflux">GERD / Acid Reflux</option>
+                <option value="Gout (High Uric Acid)">Gout (High Uric Acid)</option>
+                <option value="Lactose Intolerance">Lactose Intolerance</option>
+                <option value="Nut Allergy (Peanuts/Tree Nuts)">Nut Allergy (Peanuts/Tree Nuts)</option>
+              </select>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-xs text-slate-500 dark:text-slate-400 font-medium">Or Add Custom Condition:</label>
+              <div class="flex space-x-2">
+                <input type="text" id="input-custom-condition" class="flex-1 glass-input rounded-xl px-4 py-3 focus:outline-none text-sm font-medium" placeholder="e.g. Histamine Intolerance...">
+                <button onclick="addCustomCondition()" class="px-4 py-3 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-brand-700 dark:text-brand-400 font-bold border border-slate-300 dark:border-slate-700 text-sm transition">
+                  + Add
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div id="conditions-tags-container" class="flex flex-wrap gap-2 pt-2 min-h-[48px] p-3 rounded-2xl bg-slate-100/60 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800">
+            <span class="text-xs text-slate-400 italic flex items-center">No conditions added yet. Select from above.</span>
+          </div>
+        </div>
+
+        <div class="flex justify-end pt-4">
+          <button onclick="switchTab('planner_step2')" class="px-8 py-3.5 rounded-xl bg-brand-600 hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600 text-white dark:text-slate-950 font-bold text-sm shadow-lg shadow-brand-500/20 transition flex items-center space-x-2">
+            <span>Continue to Diet Preferences</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 2: MULTI-DIET PREFERENCES & EXCLUDED FOODS -->
+    <section id="tab-step2" class="tab-content flex-1 hidden flex-col">
+      <div class="glass-card rounded-3xl p-6 sm:p-8 space-y-8">
+        <div>
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-brand-500/10 text-brand-700 dark:text-brand-400 text-xs font-bold mb-2">
+            <span>STEP 2 OF 3</span>
+            <span>•</span>
+            <span>Dietary Rules & Exclusions</span>
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Food Preference & Excluded Items</h1>
+          <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Select one or multiple diet preferences (e.g. Veg + Non-Veg) and eliminate specific unwanted ingredients.</p>
+        </div>
+
+        <!-- MULTI-SELECT DIET PREFERENCES SECTION -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Diet Preferences (Select 1 or Multiple)</label>
+            <span id="diet-counter" class="text-xs px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-brand-700 dark:text-brand-400 border border-slate-200 dark:border-slate-700 font-semibold">0 Selected</span>
+          </div>
+          
+          <div id="diet-cards-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+
+        <hr class="border-slate-200 dark:border-slate-800">
+
+        <!-- Excluded Food Items Section (Max 50) -->
+        <div class="space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <span>Excluded Food Items</span>
+                <span id="excluded-counter" class="text-xs px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-brand-700 dark:text-brand-400 border border-slate-200 dark:border-slate-700 font-semibold">0 / 50 Excluded</span>
+              </h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Add specific ingredients to exclude (e.g. Mushroom, Cilantro, Eggplant).</p>
+            </div>
+          </div>
+
+          <div class="flex space-x-2 max-w-xl">
+            <input type="text" id="input-excluded-food" onkeydown="if(event.key==='Enter') addExcludedFood()" class="flex-1 glass-input rounded-xl px-4 py-3 focus:outline-none text-sm font-medium" placeholder="Type food item (e.g. Mushroom, Soy, Pork...)">
+            <button onclick="addExcludedFood()" class="px-5 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600 text-white dark:text-slate-950 font-bold text-sm shadow-md transition">
+              + Add Food Item
+            </button>
+          </div>
+
+          <div class="flex items-center gap-2 flex-wrap text-xs text-slate-500 dark:text-slate-400">
+            <span class="font-medium">Quick add:</span>
+            <button onclick="quickAddExcluded('Mushrooms')" class="px-2.5 py-1 rounded-lg bg-slate-200/80 dark:bg-slate-800 hover:bg-slate-300 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 transition">+ Mushrooms</button>
+            <button onclick="quickAddExcluded('Eggplant')" class="px-2.5 py-1 rounded-lg bg-slate-200/80 dark:bg-slate-800 hover:bg-slate-300 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 transition">+ Eggplant</button>
+            <button onclick="quickAddExcluded('Bell Peppers')" class="px-2.5 py-1 rounded-lg bg-slate-200/80 dark:bg-slate-800 hover:bg-slate-300 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 transition">+ Bell Peppers</button>
+            <button onclick="quickAddExcluded('Cilantro')" class="px-2.5 py-1 rounded-lg bg-slate-200/80 dark:bg-slate-800 hover:bg-slate-300 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 transition">+ Cilantro</button>
+          </div>
+
+          <div id="excluded-tags-container" class="flex flex-wrap gap-2 pt-2 min-h-[56px] p-3 rounded-2xl bg-slate-100/60 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800">
+            <span class="text-xs text-slate-400 italic flex items-center">No excluded items added yet.</span>
+          </div>
+        </div>
+
+        <div class="flex justify-between pt-4">
+          <button onclick="switchTab('planner_step1')" class="px-6 py-3 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-sm transition">
+            ← Back
+          </button>
+          <button onclick="switchTab('planner_step3')" class="px-8 py-3.5 rounded-xl bg-brand-600 hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600 text-white dark:text-slate-950 font-bold text-sm shadow-lg shadow-brand-500/20 transition flex items-center space-x-2">
+            <span>Continue to Cuisines & Schedule</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 3: CUISINES, CHEAT SCHEDULE & CUSTOM INSTRUCTIONS -->
+    <section id="tab-step3" class="tab-content flex-1 hidden flex-col">
+      <div class="glass-card rounded-3xl p-6 sm:p-8 space-y-8">
+        <div>
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-brand-500/10 text-brand-700 dark:text-brand-400 text-xs font-bold mb-2">
+            <span>STEP 3 OF 3</span>
+            <span>•</span>
+            <span>Cuisines & Schedule</span>
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Preferred Cuisines, Schedule & Custom AI Instructions</h1>
+          <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Select pre-defined or custom cuisines, cheat day schedule, and add notes for the AI generator.</p>
+        </div>
+
+        <!-- CUISINES SECTION WITH PRE-DEFINED CHECKBOXES & CUSTOM INPUT -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Preferred Cuisines (Select Checkboxes or Add Custom)</label>
+            <span id="cuisine-counter" class="text-xs px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-brand-700 dark:text-brand-400 border border-slate-200 dark:border-slate-700 font-semibold">0 Selected</span>
+          </div>
+
+          <!-- Pre-defined Cuisine Checkboxes Grid -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3" id="cuisine-grid">
+            <!-- Rendered via JS -->
+          </div>
+
+          <!-- Custom Cuisine Input Box -->
+          <div class="pt-2">
+            <label class="text-xs text-slate-500 dark:text-slate-400 font-medium block mb-1.5">Add Other Custom Cuisine Choice:</label>
+            <div class="flex space-x-2 max-w-xl">
+              <input type="text" id="input-custom-cuisine" onkeydown="if(event.key==='Enter') addCustomCuisine()" class="flex-1 glass-input rounded-xl px-4 py-3 focus:outline-none text-sm font-medium" placeholder="e.g. Korean, Lebanese, Ethiopian, Peruvian...">
+              <button onclick="addCustomCuisine()" class="px-5 py-3 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-brand-700 dark:text-brand-400 font-bold border border-slate-300 dark:border-slate-700 text-sm transition">
+                + Add Cuisine
+              </button>
+            </div>
+          </div>
+
+          <!-- Active Custom Cuisine Tags Container -->
+          <div id="custom-cuisines-tags-container" class="flex flex-wrap gap-2 pt-1 min-h-[42px] p-3 rounded-2xl bg-slate-100/60 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800">
+            <span class="text-xs text-slate-400 italic flex items-center">No custom cuisines added yet. Type your choice above.</span>
+          </div>
+        </div>
+
+        <hr class="border-slate-200 dark:border-slate-800">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Cheat Day Schedule</label>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-2">Schedule periodic cheat days into your plan.</p>
+            <div class="flex items-center space-x-3">
+              <span class="text-xs text-slate-500 dark:text-slate-400">Cheat day every</span>
+              <input type="number" id="input-cheat-interval" value="7" min="1" max="30" class="w-20 glass-input rounded-xl px-3 py-2 text-center font-bold text-sm focus:outline-none">
+              <span class="text-xs text-slate-500 dark:text-slate-400">days</span>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Diet Plan Duration</label>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-2">Select your generated plan timeframe.</p>
+            <select id="input-duration" class="w-full glass-input rounded-xl px-4 py-3 focus:outline-none text-sm font-semibold">
+              <option value="Next Week (7 Days)" selected>Next Week (7 Days Plan)</option>
+              <option value="Next 3 Days">Next 3 Days (Quick Plan)</option>
+              <option value="Next Month (30 Days)">Next Month (30 Days Plan)</option>
+            </select>
+          </div>
+        </div>
+
+        <hr class="border-slate-200 dark:border-slate-800">
+
+        <!-- CUSTOM AI INSTRUCTIONS BOX (MAX 500 CHARACTERS) -->
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <label class="text-xs font-bold uppercase tracking-wider text-brand-700 dark:text-brand-400 flex items-center gap-1.5">
+              <span>✍️ Custom Instructions for AI Prompt</span>
+              <span class="text-[10px] bg-brand-500/10 px-2 py-0.5 rounded-full border border-brand-500/20 font-normal">Optional</span>
+            </label>
+            <span id="custom-instructions-counter" class="text-xs font-semibold text-slate-500 dark:text-slate-400">0 / 500</span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Give specific instructions to the AI right before creating your plan (e.g., "Keep breakfast preparation time under 15 mins", "Include warm soups for dinner", "Higher protein after 6 PM").</p>
+          <textarea id="input-custom-instructions" maxlength="500" oninput="updateInstructionsCounter()" rows="3" class="w-full glass-input rounded-xl p-4 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none resize-none" placeholder="Type special requests or preparation preferences for the AI here..."></textarea>
+        </div>
+
+        <div class="pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <button onclick="switchTab('planner_step2')" class="px-6 py-3 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-sm transition w-full sm:w-auto">
+            ← Back
+          </button>
+          
+          <button onclick="generateDietPlan()" id="btn-generate-plan" class="w-full sm:w-auto px-10 py-4 rounded-2xl bg-gradient-to-r from-brand-600 via-emerald-500 to-teal-500 dark:from-brand-500 dark:via-emerald-400 dark:to-teal-400 hover:opacity-95 text-white dark:text-slate-950 font-extrabold text-base shadow-xl shadow-brand-500/25 transition transform active:scale-95 flex items-center justify-center space-x-3">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <span>Generate Diet Plan with AI</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 4: AI DIET PLAN DASHBOARD -->
+    <section id="tab-dashboard" class="tab-content flex-1 hidden flex-col space-y-6">
+      
+      <!-- Loading State -->
+      <div id="dashboard-loading" class="hidden glass-card rounded-3xl p-12 text-center space-y-6 my-auto">
+        <div class="w-20 h-20 mx-auto rounded-full bg-brand-500/10 border border-brand-500/30 flex items-center justify-center relative">
+          <div class="absolute inset-0 rounded-full border-2 border-brand-500 dark:border-brand-400 border-t-transparent animate-spin"></div>
+          <svg class="w-8 h-8 text-brand-600 dark:text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L5.595 15.13a2 2 0 00-1.8 1.18l-.731 1.644a1 1 0 00.16 1.096l1.24 1.488a2 2 0 001.38.642h12.312a2 2 0 001.38-.642l1.24-1.488a1 1 0 00.16-1.096l-.731-1.644z"/></svg>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold text-slate-900 dark:text-white">Synthesizing Clinical AI Diet Plan...</h3>
+          <p id="loading-status-text" class="text-sm text-slate-500 dark:text-slate-400 mt-2">Integrating multi-diet rules, custom cuisines, instructions & health constraints...</p>
+        </div>
+      </div>
+
+      <!-- Generated Results Container -->
+      <div id="dashboard-results" class="space-y-6">
+        
+        <!-- Summary Banner -->
+        <div class="glass-card rounded-3xl p-6 shadow-xl grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="bg-slate-100/80 dark:bg-slate-900/80 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center space-x-4">
+            <div class="p-3 rounded-xl bg-orange-500/10 text-orange-500 dark:text-orange-400 font-bold">🔥</div>
+            <div>
+              <span class="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold">Target Calories</span>
+              <div id="res-target-calories" class="text-xl font-extrabold text-slate-900 dark:text-white">2,100 kcal</div>
+            </div>
+          </div>
+
+          <div class="bg-slate-100/80 dark:bg-slate-900/80 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center space-x-4">
+            <div class="p-3 rounded-xl bg-brand-500/10 text-brand-700 dark:text-brand-400 font-bold">🥗</div>
+            <div>
+              <span class="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold">Macro Balance</span>
+              <div id="res-macro-summary" class="text-sm font-bold text-slate-900 dark:text-white">P: 120g | C: 210g | F: 60g</div>
+            </div>
+          </div>
+
+          <div class="bg-slate-100/80 dark:bg-slate-900/80 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center space-x-4">
+            <div class="p-3 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold">🛡️</div>
+            <div>
+              <span class="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold">Health Shield</span>
+              <div id="res-conditions-shield" class="text-xs font-bold text-slate-800 dark:text-slate-200">Filtered Safe</div>
+            </div>
+          </div>
+
+          <div class="bg-slate-100/80 dark:bg-slate-900/80 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-between no-print">
+            <div class="space-y-1">
+              <span class="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold">Export Options</span>
+              <div class="flex items-center gap-2">
+                <button onclick="window.print()" class="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700">🖨️ Print PDF</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Safety Rationale Banner -->
+        <div class="glass-card rounded-2xl p-4 border border-brand-500/30 bg-brand-50/50 dark:bg-brand-950/20 text-xs text-slate-700 dark:text-slate-300 flex items-start space-x-3">
+          <span class="text-lg">💡</span>
+          <div>
+            <span class="font-bold text-brand-700 dark:text-brand-400">Diet & Health Rationale:</span>
+            <p id="res-safety-text" class="mt-0.5 text-slate-600 dark:text-slate-300">Detailed meal plan custom-fitted to your selections.</p>
+          </div>
+        </div>
+
+        <!-- NEW: PLAN REFINEMENT / MODIFICATION INPUT BOX -->
+        <div class="glass-card rounded-2xl p-5 border border-brand-500/30 space-y-3 no-print">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold uppercase tracking-wider text-brand-700 dark:text-brand-400 flex items-center gap-1.5">
+              <span>🔄 Modify or Refine Generated Plan</span>
+              <span class="text-[10px] bg-brand-500/10 px-2 py-0.5 rounded-full border border-brand-500/20 font-normal">AI Iteration</span>
+            </label>
+            <span id="refine-instructions-counter" class="text-xs font-semibold text-slate-500 dark:text-slate-400">0 / 500</span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Want to tweak a meal, adjust portions, or change a specific day? Type your feedback below and the AI will update your plan while strictly keeping your health constraints.</p>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <input type="text" id="input-refine-plan" maxlength="500" oninput="updateRefineCounter()" onkeydown="if(event.key==='Enter') refineDietPlan()" class="flex-1 glass-input rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none" placeholder="e.g. 'Replace Day 1 dinner with a light soup', 'Make Day 2 breakfast higher protein'...">
+            <button onclick="refineDietPlan()" id="btn-refine-plan" class="px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600 text-white dark:text-slate-950 font-bold text-sm shadow-md transition flex items-center justify-center space-x-2 whitespace-nowrap">
+              <span>✨ Refine Plan</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Day Selector Pills -->
+        <div class="flex items-center justify-between no-print">
+          <h2 class="text-lg font-bold text-slate-900 dark:text-white">Daily Meal Schedule</h2>
+          <div id="day-selector-container" class="flex space-x-2 overflow-x-auto py-1">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+
+        <!-- MEAL SCHEDULE LIST -->
+        <div id="meal-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <!-- Meal Cards rendered dynamically -->
+        </div>
+
+        <!-- GROCERY LIST -->
+        <div class="glass-card rounded-3xl p-6 space-y-4">
+          <h3 class="text-lg font-bold text-slate-900 dark:text-white">🛒 Smart Grocery Shopping List</h3>
+          <div id="grocery-list-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- STEP 5: UI SCREEN MOCKUPS SHOWCASE -->
+    <section id="tab-mockups" class="tab-content flex-1 hidden flex-col space-y-8">
+      <div class="glass-card rounded-3xl p-6 sm:p-8 space-y-6">
+        <div>
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 text-xs font-bold mb-2">
+            <span>DESIGN MOCKUPS</span>
+            <span>•</span>
+            <span>Multi-Diet Interface Screens</span>
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">App Layout & Mockup Previews</h1>
+          <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Visual layouts illustrating multi-select diet choices, biometrics, custom cuisines, custom instructions, and theme controls.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 text-xs">
+          <div class="glass-card rounded-2xl p-5 space-y-3">
+            <span class="font-bold text-brand-700 dark:text-brand-400 uppercase">Screen 1: Biometrics & Conditions</span>
+            <p class="text-slate-500 dark:text-slate-400">Layout with multi-select conditions input (up to 20), custom text fields, height/weight conversion.</p>
+          </div>
+          <div class="glass-card rounded-2xl p-5 space-y-3">
+            <span class="font-bold text-brand-700 dark:text-brand-400 uppercase">Screen 2: Multi-Diet & Exclusions</span>
+            <p class="text-slate-500 dark:text-slate-400">Card-based multi-select grid for Veg / Non-Veg / Vegan + Tag manager for max 50 exclusions.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- JAVASCRIPT LOGIC ENGINE -->
+  <script>
+    const apiKey = "";
+
+    // Diet options definition
+    const DIET_OPTIONS = [
+      { id: 'Vegetarian', title: 'Vegetarian', icon: '🌱', desc: 'Plant-based foods, legumes, dairy & eggs optional.' },
+      { id: 'Non-Vegetarian', title: 'Non-Vegetarian', icon: '🍗', desc: 'Includes poultry, meats, fish, seafood & dairy.' },
+      { id: 'Vegan', title: 'Vegan', icon: '🥑', desc: 'Strictly 100% plant foods. Zero animal products or dairy.' }
+    ];
+
+    const AVAILABLE_CUISINES = ['Indian', 'Italian', 'Mexican', 'Mughlai', 'Mediterranean', 'Thai', 'Middle Eastern', 'Continental', 'Greek', 'Chinese'];
+
+    // State object supporting light/dark theme, multi-preferences, custom cuisines & prompt notes
+    const state = {
+      isDarkMode: false, // Default to Light Theme
+      gender: "Male",
+      age: 32,
+      heightCm: 175,
+      weightKg: 76,
+      conditions: ["Type 2 Diabetes", "Hypertension (High BP)"],
+      excludedFoods: ["Mushrooms", "Eggplant"],
+      foodPrefs: ["Vegetarian"],
+      predefinedCuisines: ["Indian", "Mediterranean"],
+      customCuisines: [],
+      cuisines: ["Indian", "Mediterranean"],
+      cheatInterval: 7,
+      duration: "Next Week (7 Days)",
+      customInstructions: "",
+      generatedPlan: null,
+      selectedDayIndex: 0
+    };
+
+    // THEME TOGGLE LOGIC
+    function toggleTheme() {
+      state.isDarkMode = !state.isDarkMode;
+      applyTheme();
+    }
+
+    function applyTheme() {
+      const htmlEl = document.documentElement;
+      const themeIcon = document.getElementById('theme-icon');
+      const themeText = document.getElementById('theme-text');
+
+      if (state.isDarkMode) {
+        htmlEl.classList.add('dark');
+        if (themeIcon) themeIcon.innerText = '🌙';
+        if (themeText) themeText.innerText = 'Dark';
+      } else {
+        htmlEl.classList.remove('dark');
+        if (themeIcon) themeIcon.innerText = '☀️';
+        if (themeText) themeText.innerText = 'Light';
+      }
+    }
+
+    // Exponential backoff for API robustness
+    async function callApiWithBackoff(fetchFn, maxRetries = 5) {
+      let delay = 1000;
+      for (let i = 0; i < maxRetries; i++) {
+        try {
+          const response = await fetchFn();
+          if (response.ok) return await response.json();
+        } catch (err) {}
+        if (i < maxRetries - 1) {
+          await new Promise(res => setTimeout(res, delay));
+          delay *= 2;
+        }
+      }
+      throw new Error("Service busy, please retry.");
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      applyTheme();
+      renderConditions();
+      renderExcludedFoods();
+      renderDietCards();
+      renderCuisines();
+      renderCustomCuisines();
+      updateInstructionsCounter();
+      updateRefineCounter();
+    });
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      
+      const tabMap = {
+        'planner_step1': 'tab-step1',
+        'planner_step2': 'tab-step2',
+        'planner_step3': 'tab-step3',
+        'planner_dashboard': 'tab-dashboard',
+        'screen_mockups': 'tab-mockups'
+      };
+
+      const target = tabMap[tabId] || 'tab-step1';
+      document.getElementById(target).classList.remove('hidden');
+
+      const btn1 = document.getElementById('nav-btn-step1');
+      const btn2 = document.getElementById('nav-btn-step2');
+      const btn3 = document.getElementById('nav-btn-step3');
+      const btnDash = document.getElementById('nav-btn-dashboard');
+
+      [btn1, btn2, btn3, btnDash].forEach(btn => {
+        if(btn) btn.className = "flex-1 min-w-[140px] px-3 py-2.5 rounded-xl font-semibold text-xs transition flex items-center justify-center space-x-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white";
+      });
+
+      const activeClass = "flex-1 min-w-[140px] px-3 py-2.5 rounded-xl font-bold text-xs transition flex items-center justify-center space-x-2 bg-brand-600 dark:bg-brand-500 text-white dark:text-slate-950 shadow";
+
+      if (tabId === 'planner_step1') btn1.className = activeClass;
+      if (tabId === 'planner_step2') btn2.className = activeClass;
+      if (tabId === 'planner_step3') btn3.className = activeClass;
+      if (tabId === 'planner_dashboard') btnDash.className = activeClass;
+    }
+
+    function toggleHeightUnit() {
+      const unit = document.getElementById('height-unit').value;
+      const cmContainer = document.getElementById('height-cm-container');
+      const ftContainer = document.getElementById('height-ft-container');
+
+      if (unit === 'ft') {
+        cmContainer.classList.add('hidden');
+        ftContainer.classList.remove('hidden');
+      } else {
+        cmContainer.classList.remove('hidden');
+        ftContainer.classList.add('hidden');
+      }
+    }
+
+    // Health Conditions
+    function addConditionFromDropdown() {
+      const dropdown = document.getElementById('dropdown-conditions');
+      const val = dropdown.value;
+      if (!val || state.conditions.length >= 20 || state.conditions.includes(val)) return;
+      state.conditions.push(val);
+      dropdown.value = "";
+      renderConditions();
+    }
+
+    function addCustomCondition() {
+      const input = document.getElementById('input-custom-condition');
+      const val = input.value.trim();
+      if (!val || state.conditions.length >= 20 || state.conditions.includes(val)) return;
+      state.conditions.push(val);
+      input.value = "";
+      renderConditions();
+    }
+
+    function removeCondition(idx) {
+      state.conditions.splice(idx, 1);
+      renderConditions();
+    }
+
+    function renderConditions() {
+      const container = document.getElementById('conditions-tags-container');
+      const counter = document.getElementById('condition-counter');
+      counter.innerText = `${state.conditions.length} / 20 Selected`;
+
+      if (state.conditions.length === 0) {
+        container.innerHTML = `<span class="text-xs text-slate-400 italic flex items-center">No conditions added yet. Select from above.</span>`;
+        return;
+      }
+
+      container.innerHTML = state.conditions.map((cond, idx) => `
+        <span class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-brand-500/10 border border-brand-500/30 text-brand-700 dark:text-brand-300 font-semibold text-xs">
+          <span>🩺 ${cond}</span>
+          <button onclick="removeCondition(${idx})" class="hover:text-red-500 font-bold ml-1">✕</button>
+        </span>
+      `).join('');
+    }
+
+    // MULTI-SELECT DIET PREFERENCE LOGIC
+    function toggleDietPreference(dietId) {
+      const idx = state.foodPrefs.indexOf(dietId);
+      if (idx > -1) {
+        state.foodPrefs.splice(idx, 1);
+      } else {
+        state.foodPrefs.push(dietId);
+      }
+      renderDietCards();
+    }
+
+    function renderDietCards() {
+      const grid = document.getElementById('diet-cards-grid');
+      const counter = document.getElementById('diet-counter');
+      counter.innerText = `${state.foodPrefs.length} Selected`;
+
+      grid.innerHTML = DIET_OPTIONS.map(diet => {
+        const selected = state.foodPrefs.includes(diet.id);
+        const cardClass = selected 
+          ? 'border-brand-500 bg-brand-500/10 shadow-lg shadow-brand-500/10' 
+          : 'border-slate-200 dark:border-slate-700/80 hover:border-brand-500/50';
+        const checkboxClass = selected ? 'bg-brand-600 dark:bg-brand-500 border-brand-500' : 'border-slate-400 dark:border-slate-600';
+
+        return `
+          <div onclick="toggleDietPreference('${diet.id}')" class="relative flex flex-col p-5 rounded-2xl glass-card ${cardClass} cursor-pointer transition group">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-2xl">${diet.icon}</span>
+              <div class="w-5 h-5 rounded-full border-2 ${checkboxClass} flex items-center justify-center transition">
+                ${selected ? '<svg class="w-3 h-3 text-white dark:text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : ''}
+              </div>
+            </div>
+            <span class="font-bold text-slate-900 dark:text-white text-base">${diet.title}</span>
+            <span class="text-xs text-slate-500 dark:text-slate-400 mt-1">${diet.desc}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Excluded Foods
+    function addExcludedFood() {
+      const input = document.getElementById('input-excluded-food');
+      const val = input.value.trim();
+      if (!val || state.excludedFoods.length >= 50 || state.excludedFoods.map(i => i.toLowerCase()).includes(val.toLowerCase())) return;
+      state.excludedFoods.push(val);
+      input.value = "";
+      renderExcludedFoods();
+    }
+
+    function quickAddExcluded(food) {
+      if (state.excludedFoods.length >= 50 || state.excludedFoods.map(i => i.toLowerCase()).includes(food.toLowerCase())) return;
+      state.excludedFoods.push(food);
+      renderExcludedFoods();
+    }
+
+    function removeExcludedFood(idx) {
+      state.excludedFoods.splice(idx, 1);
+      renderExcludedFoods();
+    }
+
+    function renderExcludedFoods() {
+      const container = document.getElementById('excluded-tags-container');
+      const counter = document.getElementById('excluded-counter');
+      counter.innerText = `${state.excludedFoods.length} / 50 Excluded`;
+
+      if (state.excludedFoods.length === 0) {
+        container.innerHTML = `<span class="text-xs text-slate-400 italic flex items-center">No excluded items added yet.</span>`;
+        return;
+      }
+
+      container.innerHTML = state.excludedFoods.map((item, idx) => `
+        <span class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-red-500/15 border border-red-500/30 text-red-700 dark:text-red-300 font-semibold text-xs">
+          <span>🚫 ${item}</span>
+          <button onclick="removeExcludedFood(${idx})" class="hover:text-red-900 dark:hover:text-white font-bold ml-1">✕</button>
+        </span>
+      `).join('');
+    }
+
+    // CUISINES LOGIC
+    function renderCuisines() {
+      const grid = document.getElementById('cuisine-grid');
+      grid.innerHTML = AVAILABLE_CUISINES.map(cus => `
+        <label class="cuisine-pill flex items-center space-x-2.5 p-3 rounded-xl glass-card cursor-pointer hover:border-brand-500 transition">
+          <input type="checkbox" value="${cus}" onchange="updateCuisineCounter()" ${state.predefinedCuisines.includes(cus) ? 'checked' : ''} class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600">
+          <span class="text-xs font-bold text-slate-800 dark:text-white">${cus}</span>
+        </label>
+      `).join('');
+      updateCuisineCounter();
+    }
+
+    function addCustomCuisine() {
+      const input = document.getElementById('input-custom-cuisine');
+      const val = input.value.trim();
+      if (!val) return;
+
+      const existsInPredefined = AVAILABLE_CUISINES.some(c => c.toLowerCase() === val.toLowerCase());
+      const existsInCustom = state.customCuisines.some(c => c.toLowerCase() === val.toLowerCase());
+
+      if (existsInPredefined) {
+        const foundName = AVAILABLE_CUISINES.find(c => c.toLowerCase() === val.toLowerCase());
+        if (!state.predefinedCuisines.includes(foundName)) {
+          state.predefinedCuisines.push(foundName);
+          renderCuisines();
+        }
+      } else if (!existsInCustom) {
+        state.customCuisines.push(val);
+        renderCustomCuisines();
+      }
+      input.value = "";
+    }
+
+    function removeCustomCuisine(idx) {
+      state.customCuisines.splice(idx, 1);
+      renderCustomCuisines();
+    }
+
+    function renderCustomCuisines() {
+      const container = document.getElementById('custom-cuisines-tags-container');
+      if (!container) return;
+
+      if (state.customCuisines.length === 0) {
+        container.innerHTML = `<span class="text-xs text-slate-400 italic flex items-center">No custom cuisines added yet. Type your choice above.</span>`;
+      } else {
+        container.innerHTML = state.customCuisines.map((cus, idx) => `
+          <span class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-teal-500/15 border border-teal-500/30 text-teal-700 dark:text-teal-300 font-semibold text-xs">
+            <span>🍛 ${cus}</span>
+            <button onclick="removeCustomCuisine(${idx})" class="hover:text-red-500 font-bold ml-1">✕</button>
+          </span>
+        `).join('');
+      }
+      updateCuisineCounter();
+    }
+
+    function updateCuisineCounter() {
+      const checkedPredefined = Array.from(document.querySelectorAll('#cuisine-grid input[type="checkbox"]:checked')).map(cb => cb.value);
+      const totalCount = checkedPredefined.length + state.customCuisines.length;
+      const counter = document.getElementById('cuisine-counter');
+      if (counter) counter.innerText = `${totalCount} Selected`;
+    }
+
+    function updateInstructionsCounter() {
+      const input = document.getElementById('input-custom-instructions');
+      const counter = document.getElementById('custom-instructions-counter');
+      if (input && counter) {
+        counter.innerText = `${input.value.length} / 500`;
+      }
+    }
+
+    function updateRefineCounter() {
+      const input = document.getElementById('input-refine-plan');
+      const counter = document.getElementById('refine-instructions-counter');
+      if (input && counter) {
+        counter.innerText = `${input.value.length} / 500`;
+      }
+    }
+
+    // Presets
+    function loadPreset(type) {
+      if (type === 'diabetic_veg') {
+        state.conditions = ["Type 2 Diabetes", "Hypertension (High BP)"];
+        state.excludedFoods = ["White Rice", "Refined Sugar"];
+        state.foodPrefs = ["Vegetarian"];
+        state.predefinedCuisines = ["Indian", "Mediterranean"];
+        state.customCuisines = [];
+        state.customInstructions = "Keep breakfast quick under 10 minutes preparation.";
+      } else if (type === 'flexitarian') {
+        state.conditions = ["High Cholesterol"];
+        state.excludedFoods = ["Processed Meats"];
+        state.foodPrefs = ["Vegetarian", "Non-Vegetarian"];
+        state.predefinedCuisines = ["Continental", "Italian", "Indian"];
+        state.customCuisines = ["Lebanese"];
+        state.customInstructions = "Include light soups for dinner.";
+      } else if (type === 'pcos_vegan') {
+        state.conditions = ["Polycystic Ovary Syndrome (PCOS)"];
+        state.excludedFoods = ["Dairy Milk", "Cheese", "Refined Flour"];
+        state.foodPrefs = ["Vegan"];
+        state.predefinedCuisines = ["Mediterranean", "Thai", "Mexican"];
+        state.customCuisines = ["Korean"];
+        state.customInstructions = "Ensure high fiber snacks in afternoon.";
+      }
+      renderConditions();
+      renderExcludedFoods();
+      renderDietCards();
+      renderCuisines();
+      renderCustomCuisines();
+      const area = document.getElementById('input-custom-instructions');
+      if (area) area.value = state.customInstructions;
+      updateInstructionsCounter();
+      switchTab('planner_step1');
+    }
+
+    // Form Sync
+    function syncFormState() {
+      state.gender = document.getElementById('input-gender').value;
+      state.age = parseInt(document.getElementById('input-age').value) || 30;
+
+      const heightUnit = document.getElementById('height-unit').value;
+      if (heightUnit === 'cm') {
+        state.heightCm = parseInt(document.getElementById('input-height-cm').value) || 170;
+      } else {
+        const ft = parseInt(document.getElementById('input-height-ft').value) || 5;
+        const inch = parseInt(document.getElementById('input-height-in').value) || 7;
+        state.heightCm = Math.round((ft * 30.48) + (inch * 2.54));
+      }
+
+      const weightUnit = document.getElementById('weight-unit').value;
+      const rawWeight = parseFloat(document.getElementById('input-weight').value) || 70;
+      state.weightKg = weightUnit === 'lbs' ? Math.round(rawWeight * 0.453592) : rawWeight;
+
+      const checkedPredefined = [];
+      document.querySelectorAll('#cuisine-grid input[type="checkbox"]:checked').forEach(cb => {
+        checkedPredefined.push(cb.value);
+      });
+      state.predefinedCuisines = checkedPredefined;
+
+      state.cuisines = Array.from(new Set([...state.predefinedCuisines, ...state.customCuisines]));
+      if (state.cuisines.length === 0) state.cuisines = ["Indian", "Mediterranean"];
+
+      state.cheatInterval = parseInt(document.getElementById('input-cheat-interval').value) || 7;
+      state.duration = document.getElementById('input-duration').value;
+      state.customInstructions = (document.getElementById('input-custom-instructions').value || '').trim();
+    }
+
+    // GENERATE DIET PLAN
+    async function generateDietPlan() {
+      syncFormState();
+
+      if (state.foodPrefs.length === 0) {
+        alert("Please select at least one diet preference (Vegetarian, Non-Vegetarian, or Vegan).");
+        switchTab('planner_step2');
+        return;
+      }
+
+      switchTab('planner_dashboard');
+      document.getElementById('dashboard-loading').classList.remove('hidden');
+      document.getElementById('dashboard-results').classList.add('hidden');
+      document.getElementById('loading-status-text').innerText = "Integrating multi-diet rules, custom cuisines, instructions & health constraints...";
+
+      const prompt = `
+Generate a clinical diet plan in JSON format based on the following user parameters:
+- Gender: ${state.gender}, Age: ${state.age}, Height: ${state.heightCm}cm, Weight: ${state.weightKg}kg.
+- Health Conditions: ${state.conditions.length > 0 ? state.conditions.join(', ') : 'None'} (STRICTLY AVOID CONTRAINDICATED INGREDIENTS).
+- Excluded Foods: ${state.excludedFoods.length > 0 ? state.excludedFoods.join(', ') : 'None'} (DO NOT INCLUDE IN ANY RECIPE).
+- Selected Diet Preferences: ${state.foodPrefs.join(' AND ')}. Note: The user allows meals corresponding to these choices (${state.foodPrefs.join(', ')}).
+- Preferred Cuisines: ${state.cuisines.join(', ')}.
+- Cheat Day Schedule: Include cheat day every ${state.cheatInterval} days.
+- Duration: ${state.duration}.
+- Custom Instructions from User: ${state.customInstructions || 'None provided'}.
+
+Output strict JSON only with this schema:
+{
+  "summary": {
+    "dailyCalorieTarget": 2100,
+    "proteinGrams": 120,
+    "carbsGrams": 210,
+    "fatsGrams": 60,
+    "safetyRationale": "Detailed explanation of multi-diet, custom cuisine adaptations, health adaptations, and custom instructions applied."
+  },
+  "days": [
+    {
+      "dayNumber": 1,
+      "dayTitle": "Day 1",
+      "isCheatDay": false,
+      "totalCalories": 2080,
+      "meals": [
+        {
+          "type": "Breakfast",
+          "time": "8:00 AM",
+          "title": "Recipe Title",
+          "cuisine": "Indian",
+          "calories": 380,
+          "protein": "16g",
+          "carbs": "50g",
+          "fat": "10g",
+          "ingredients": ["Item 1", "Item 2"],
+          "instructions": "Cooking steps",
+          "healthNote": "Health note"
+        }
+      ]
+    }
+  ],
+  "groceryList": {
+    "Produce": ["Item 1"],
+    "Grains": ["Item 2"]
+  }
+}
+Provide 3 days in the array.
+`;
+
+      try {
+        const data = await callApiWithBackoff(() => fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { responseMimeType: "application/json" }
+          })
+        }));
+
+        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (rawText) {
+          state.generatedPlan = JSON.parse(rawText);
+          renderGeneratedDashboard();
+        } else {
+          throw new Error("Invalid format.");
+        }
+      } catch (err) {
+        state.generatedPlan = getFallbackMultiDietPlan();
+        renderGeneratedDashboard();
+      } finally {
+        document.getElementById('dashboard-loading').classList.add('hidden');
+        document.getElementById('dashboard-results').classList.remove('hidden');
+      }
+    }
+
+    // REFINE / MODIFY EXISTING DIET PLAN
+    async function refineDietPlan() {
+      const inputEl = document.getElementById('input-refine-plan');
+      const modText = (inputEl ? inputEl.value : '').trim();
+
+      if (!modText) {
+        alert("Please enter a modification request (e.g. 'Replace Day 1 dinner with a light soup', 'Make Day 2 breakfast higher protein').");
+        return;
+      }
+
+      if (!state.generatedPlan) {
+        alert("No existing plan found to modify.");
+        return;
+      }
+
+      document.getElementById('dashboard-loading').classList.remove('hidden');
+      document.getElementById('dashboard-results').classList.add('hidden');
+      document.getElementById('loading-status-text').innerText = `Refining your plan based on feedback: "${modText}"...`;
+
+      const prompt = `
+You are an expert clinical dietitian AI. The user wants to modify their existing generated diet plan.
+
+CURRENT GENERATED DIET PLAN JSON:
+${JSON.stringify(state.generatedPlan)}
+
+USER'S MODIFICATION REQUEST:
+"${modText}"
+
+CORE SAFETY & PROFILE CONSTRAINTS (STRICTLY RESPECT & PRESERVE ALL OF THESE):
+- Gender: ${state.gender}, Age: ${state.age}, Height: ${state.heightCm}cm, Weight: ${state.weightKg}kg.
+- Health Conditions: ${state.conditions.length > 0 ? state.conditions.join(', ') : 'None'} (STRICTLY AVOID CONTRAINDICATED INGREDIENTS).
+- Excluded Foods: ${state.excludedFoods.length > 0 ? state.excludedFoods.join(', ') : 'None'} (DO NOT INCLUDE IN ANY RECIPE).
+- Selected Diet Preferences: ${state.foodPrefs.join(' AND ')}.
+- Preferred Cuisines: ${state.cuisines.join(', ')}.
+
+INSTRUCTIONS:
+Update the JSON diet plan to incorporate the user's specific request while strictly keeping all health conditions and dietary exclusions safe.
+Update the "safetyRationale" field to document how the user's feedback was applied.
+
+Output strict JSON matching the same schema:
+{
+  "summary": {
+    "dailyCalorieTarget": 2100,
+    "proteinGrams": 120,
+    "carbsGrams": 210,
+    "fatsGrams": 60,
+    "safetyRationale": "..."
+  },
+  "days": [ ... ],
+  "groceryList": { ... }
+}
+`;
+
+      try {
+        const data = await callApiWithBackoff(() => fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { responseMimeType: "application/json" }
+          })
+        }));
+
+        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (rawText) {
+          state.generatedPlan = JSON.parse(rawText);
+        } else {
+          throw new Error("Invalid response format.");
+        }
+      } catch (err) {
+        state.generatedPlan = getFallbackRefinedPlan(modText);
+      } finally {
+        if (inputEl) inputEl.value = "";
+        updateRefineCounter();
+        renderGeneratedDashboard();
+        document.getElementById('dashboard-loading').classList.add('hidden');
+        document.getElementById('dashboard-results').classList.remove('hidden');
+      }
+    }
+
+    function renderGeneratedDashboard() {
+      const plan = state.generatedPlan;
+      if (!plan) return;
+
+      document.getElementById('res-target-calories').innerText = `${plan.summary.dailyCalorieTarget || 2100} kcal`;
+      document.getElementById('res-macro-summary').innerText = `P: ${plan.summary.proteinGrams || 120}g | C: ${plan.summary.carbsGrams || 210}g | F: ${plan.summary.fatsGrams || 60}g`;
+      document.getElementById('res-conditions-shield').innerText = `Filtered for ${state.conditions.length} Conditions`;
+      document.getElementById('res-safety-text').innerText = plan.summary.safetyRationale || "Plan compiled matching selected multi-diet preferences, custom cuisines, custom instructions, and health constraints.";
+
+      const selectorContainer = document.getElementById('day-selector-container');
+      selectorContainer.innerHTML = plan.days.map((d, idx) => `
+        <button onclick="selectDay(${idx})" class="px-3.5 py-1.5 rounded-xl font-bold text-xs transition whitespace-nowrap ${idx === state.selectedDayIndex ? 'bg-brand-600 dark:bg-brand-500 text-white dark:text-slate-950 shadow-md' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700'}">
+          ${d.isCheatDay ? '🎉 Cheat Day' : `Day ${d.dayNumber}`}
+        </button>
+      `).join('');
+
+      renderMealCards();
+      renderGroceryList();
+    }
+
+    function selectDay(dayIdx) {
+      state.selectedDayIndex = dayIdx;
+      renderGeneratedDashboard();
+    }
+
+    function renderMealCards() {
+      const plan = state.generatedPlan;
+      if (!plan || !plan.days || !plan.days[state.selectedDayIndex]) return;
+
+      const day = plan.days[state.selectedDayIndex];
+      const grid = document.getElementById('meal-cards-grid');
+
+      grid.innerHTML = day.meals.map(meal => `
+        <div class="glass-card rounded-2xl p-5 flex flex-col justify-between space-y-4 shadow-lg">
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-brand-700 dark:text-brand-400 border border-slate-200 dark:border-slate-700">
+                ${meal.type} ${meal.time ? '• ' + meal.time : ''}
+              </span>
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400">${meal.cuisine || 'Special'}</span>
+            </div>
+            <h4 class="text-base font-bold text-slate-900 dark:text-white line-clamp-2">${meal.title}</h4>
+            <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">${meal.healthNote || 'Tailored nutrition.'}</p>
+          </div>
+
+          <div class="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
+            <span class="font-bold text-orange-600 dark:text-orange-400">🔥 ${meal.calories} kcal</span>
+            <span class="text-slate-500 dark:text-slate-400 text-[11px]">P: ${meal.protein} | C: ${meal.carbs}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderGroceryList() {
+      const plan = state.generatedPlan;
+      if (!plan || !plan.groceryList) return;
+
+      const container = document.getElementById('grocery-list-container');
+      const gl = plan.groceryList;
+
+      container.innerHTML = Object.keys(gl).map(cat => `
+        <div class="bg-slate-100/80 dark:bg-slate-900/80 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2">
+          <span class="font-bold text-brand-700 dark:text-brand-400 text-xs block uppercase tracking-wider">${cat}</span>
+          <ul class="space-y-1 text-slate-700 dark:text-slate-300">
+            ${gl[cat].map(item => `<li class="flex items-center space-x-2"><span>•</span><span>${item}</span></li>`).join('')}
+          </ul>
+        </div>
+      `).join('');
+    }
+
+    function getFallbackMultiDietPlan() {
+      const prefsText = state.foodPrefs.join(', ');
+      const cuisinesText = state.cuisines.join(', ');
+      const noteText = state.customInstructions ? ` Custom Notes: "${state.customInstructions}".` : '';
+      return {
+        "summary": {
+          "dailyCalorieTarget": 2080,
+          "proteinGrams": 125,
+          "carbsGrams": 215,
+          "fatsGrams": 58,
+          "safetyRationale": `Multi-diet preferences satisfied: [${prefsText}]. Cuisines: [${cuisinesText}]. Strictly excluding: [${state.excludedFoods.join(', ') || 'None'}]. Adapted for conditions: [${state.conditions.join(', ') || 'None'}].${noteText}`
+        },
+        "days": [
+          {
+            "dayNumber": 1,
+            "isCheatDay": false,
+            "totalCalories": 2080,
+            "meals": [
+              {
+                "type": "Breakfast",
+                "time": "8:30 AM",
+                "title": "Moong Dal & Spinach Pancake",
+                "cuisine": state.cuisines[0] || "Indian",
+                "calories": 380,
+                "protein": "18g",
+                "carbs": "48g",
+                "fat": "10g",
+                "ingredients": ["Soaked Moong Dal", "Fresh Spinach", "Cumin"],
+                "instructions": "Grind ingredients into a smooth batter and cook on skillet with minimal oil.",
+                "healthNote": "Low GI meal supporting stable blood sugar."
+              },
+              {
+                "type": "Lunch",
+                "time": "1:30 PM",
+                "title": "Whole Wheat Cannelloni with Herb Ricotta / Cottage Cheese",
+                "cuisine": state.cuisines[1] || "Italian",
+                "calories": 540,
+                "protein": "26g",
+                "carbs": "62g",
+                "fat": "14g",
+                "ingredients": ["Whole Wheat Pasta", "Low Fat Cottage Cheese", "Tomato Reduction"],
+                "instructions": "Stuff whole wheat pasta tubes with cottage cheese and bake with fresh sauce.",
+                "healthNote": "Complex carbs paired with high quality casein protein."
+              },
+              {
+                "type": "Dinner",
+                "time": "8:00 PM",
+                "title": "Herbed Quinoa Pilaf with Flame Grilled Protein",
+                "cuisine": state.cuisines[2] || "Mediterranean",
+                "calories": 460,
+                "protein": "24g",
+                "carbs": "50g",
+                "fat": "12g",
+                "ingredients": ["Cooked Quinoa", "Grilled Tofu / Chicken", "Zucchini"],
+                "instructions": "Sear protein on skillet and serve over fluffy lemon herb quinoa.",
+                "healthNote": "Magnesium rich and easy to digest before sleep."
+              }
+            ]
+          }
+        ],
+        "groceryList": {
+          "Produce": ["Fresh Spinach", "Zucchini", "Lemons", "Tomatoes"],
+          "Grains & Legumes": ["Moong Dal", "Quinoa", "Whole Wheat Cannelloni"],
+          "Proteins": ["Low Fat Cottage Cheese", "Tofu / Chicken", "Greek Yogurt"],
+          "Spices & Oils": ["Olive Oil", "Cumin", "Herbs"]
+        }
+      };
+    }
+
+    function getFallbackRefinedPlan(modText) {
+      const plan = state.generatedPlan || getFallbackMultiDietPlan();
+      const updatedPlan = JSON.parse(JSON.stringify(plan));
+      updatedPlan.summary.safetyRationale = (updatedPlan.summary.safetyRationale || "") + ` [Refined with feedback: "${modText}"]`;
+      
+      if (updatedPlan.days && updatedPlan.days[0] && updatedPlan.days[0].meals) {
+        const lastMealIdx = updatedPlan.days[0].meals.length - 1;
+        updatedPlan.days[0].meals[lastMealIdx].title = `Refined Meal (${modText.substring(0, 30)}...)`;
+        updatedPlan.days[0].meals[lastMealIdx].healthNote = `Modified per user feedback: "${modText}". Strictly safe for health conditions.`;
+      }
+      return updatedPlan;
+    }
+  </script>
+</body>
+</html>

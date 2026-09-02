@@ -1,0 +1,86 @@
+export const DIET_PLAN_JSON_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["rationale", "days", "grocery"],
+  properties: {
+    rationale: {
+      type: "string",
+      description:
+        "2-4 sentences on how the plan respects conditions, exclusions, diet pattern, cuisines, and custom notes.",
+    },
+    days: {
+      type: "array",
+      minItems: 1,
+      maxItems: 7,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["dayNumber", "title", "isCheatDay", "totalCalories", "meals"],
+        properties: {
+          dayNumber: { type: "integer", minimum: 1, maximum: 7 },
+          title: { type: "string" },
+          isCheatDay: { type: "boolean" },
+          totalCalories: { type: "integer" },
+          meals: {
+            type: "array",
+            minItems: 3,
+            maxItems: 5,
+            items: {
+              type: "object",
+              additionalProperties: false,
+              required: [
+                "type",
+                "time",
+                "title",
+                "cuisine",
+                "calories",
+                "proteinG",
+                "carbsG",
+                "fatG",
+                "ingredients",
+                "instructions",
+                "healthNote",
+                "prepMinutes",
+              ],
+              properties: {
+                type: {
+                  type: "string",
+                  enum: ["Breakfast", "Lunch", "Dinner", "Snack"],
+                },
+                time: { type: "string" },
+                title: { type: "string" },
+                cuisine: { type: "string" },
+                calories: { type: "integer" },
+                proteinG: { type: "integer" },
+                carbsG: { type: "integer" },
+                fatG: { type: "integer" },
+                ingredients: {
+                  type: "array",
+                  items: { type: "string" },
+                  minItems: 3,
+                  maxItems: 10,
+                },
+                instructions: { type: "string" },
+                healthNote: { type: "string" },
+                prepMinutes: { type: "integer", minimum: 5, maximum: 90 },
+              },
+            },
+          },
+        },
+      },
+    },
+    grocery: {
+      type: "object",
+      additionalProperties: false,
+      required: ["produce", "proteins", "grains", "dairy", "pantry", "spices"],
+      properties: {
+        produce: { type: "array", items: { type: "string" } },
+        proteins: { type: "array", items: { type: "string" } },
+        grains: { type: "array", items: { type: "string" } },
+        dairy: { type: "array", items: { type: "string" } },
+        pantry: { type: "array", items: { type: "string" } },
+        spices: { type: "array", items: { type: "string" } },
+      },
+    },
+  },
+} as const;
