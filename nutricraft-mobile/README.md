@@ -45,6 +45,34 @@ phone, or press `w` for the web preview, `i`/`a` for a simulator/emulator.
 - `src/api.ts` / `src/config.ts` — calls to the Bun backend.
 - `src/types.ts` — shared `Profile`/`Plan` shapes (matches the backend's).
 
+## Building a real .apk to install on your phone
+
+This needs **EAS Build** (Expo's free cloud build service) — it can't be
+run from this sandbox (its network is blocked from reaching Expo's
+servers), so do this from your own computer:
+
+```bash
+cd nutricraft-mobile
+npm install -g eas-cli   # one-time
+eas login                # create a free Expo account if you don't have one
+eas build -p android --profile preview
+```
+
+That queues a build on Expo's servers (a few minutes), then prints a link
+to download the `.apk` directly — open that link on your phone (or scan
+the QR code EAS prints) and it installs like any sideloaded app. You may
+need to allow "install unknown apps" for your browser/Files app the first
+time.
+
+**Important — set `API_BASE_URL` to a public URL before building.** A
+built APK runs standalone on your phone with no dev machine involved, so
+`localhost` or a LAN IP won't work anymore — the backend needs a real
+public URL (e.g. deployed to Render, see `../nutricraft-backend`). Update
+`src/config.ts` to point at it, commit, *then* run `eas build`.
+
+`eas.json` (already in this folder) defines a `preview` profile that
+builds an installable `.apk` instead of Google Play's `.aab` bundle.
+
 ## Known limitation
 
 Not screenshot-verified in a running simulator/device from this session —
